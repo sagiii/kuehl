@@ -8,8 +8,8 @@
 
 #include <FS.h>
 #include <SPIFFS.h>
-#include <Keypad.h>
-#include <NeoPixelBus.h>
+//#include <Keypad.h>
+//#include <NeoPixelBus.h>
 #ifdef __AVR__
   #include <avr/power.h>
 #endif
@@ -57,8 +57,8 @@ char projectId[64];
 
 bool shouldSaveConfig = false;
 
-Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS );
-NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> pixels(NUMPIXELS, RGB_PIN);
+//Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS );
+//NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> pixels(NUMPIXELS, RGB_PIN);
 WiFiManager wifiManager;
 HTTPClient http;
 
@@ -87,6 +87,7 @@ String uuid() {
   return String(buffer);
 }
 
+#if 0
 void showLed(ledColor colorName) {
   RgbColor colorValue;
   
@@ -113,6 +114,10 @@ void turnOffLed() {
   pixels.SetPixelColor(0, RgbColor(0));
   pixels.Show();
 }
+#else
+#define showLed(c)
+#define turnOffLed()
+#endif
 
 String urlencode(String str)
 {
@@ -155,8 +160,8 @@ String urlencode(String str)
 void setup() {
   Serial.begin(115200);
 
-  pixels.Begin();
-  pixels.Show();
+  //pixels.Begin();
+  //pixels.Show();
   
   showLed(yellow);
 
@@ -254,7 +259,8 @@ void saveConfigCallback () {
  * Loop
  ****************************************************/
 void loop(){
-  char key = keypad.getKey();
+  //char key = keypad.getKey();
+  char key = Serial.read();
   
   if (key){
     if(String(key) == "*") {
@@ -266,12 +272,12 @@ void loop(){
       Serial.println(key);
   
       String requestUrl = "https://todoist.com/api/v7/sync?token=" + String(token) + "&commands=" + urlencode(
-        "[{\"type\": \"item_add\", \"temp_id\": \"" + 
+        R"([{"type": "item_add", "temp_id": ")" + 
         uuid() + 
-        "\", \"uuid\": \"" + 
-        uuid() + "\", \"args\": {\"content\": \"Task " + 
+        R"(", "uuid": ")" + 
+        uuid() + R"(", "args": {"content": "Task )" + 
         key + 
-        "\", \"project_id\": " + String(projectId) + "}}]");
+        R"(", "project_id": )" + String(projectId) + "}}]");
       
       Serial.print("Request URL: ");
       Serial.println(requestUrl);
